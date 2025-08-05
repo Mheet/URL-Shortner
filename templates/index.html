@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project ShortStack - Living Constellation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+
+    <body>
+    <svg style="display:none;">
+        <defs>
+            <filter id="gooey-filter">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10" result="goo" />
+                <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+            </filter>
+        </defs>
+    </svg>
+
+    <div class="cursor-dot"></div>
+    <div class="cursor-follower"></div>
+    ...
+    
+    <canvas id="interactive-bg"></canvas>
+
+    <div class="card">
+        <div class="card-header">
+            <h1>ShortStack</h1>
+            <p>The simplest way to shorten your links.</p>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="flash-error">
+            {% for message in messages %}
+              <p>{{ message }}</p>
+            {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% if new_link %}
+            <div class="result-box">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>
+                <a href="{{ new_link }}" target="_blank">{{ new_link }}</a>
+            </div>
+        {% endif %}
+
+        <form method="post" class="url-form">
+            <div class="form-group">
+                <input type="url" name="long_url" id="long_url" placeholder="Enter a long URL to shorten..." required>
+            </div>
+            <div class="form-group">
+                <input type="text" name="custom_alias" id="custom_alias" placeholder="Optional: enter a custom alias">
+            </div>
+            <button type="submit">Shorten Link</button>
+        </form>
+    </div>
+<script>
+        // --- Element & Variable Setup ---
+        const canvas = document.getElementById('interactive-bg');
+        const ctx = canvas.getContext('2d');
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorFollower = document.querySelector('.cursor-follower');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        let lastMouse = { x: mouse.x, y: mouse.y };
+        let follower = { x: mouse.x, y: mouse.y, vx: 0, vy: 0 };
+        
+        let ambientParticles = [];
+        let trailParticles = [];
+        let rippleParticles = []; 
+        let hue = 0;
+
+        // --- Event Listeners ---
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = event.x;
+            mouse.y = event.y;
+        });
+
+        window.addEventListener('mousedown', (event) => {
+            rippleParticles.push(new RippleParticle(mouse.x, mouse.y));
+        });
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initAmbient();
+        });
+
+        // --- Particle Classes ---
+        class AmbientParticle {
+            constructor(x, y, directionX, directionY, size) {
+                this.x = x; this.y = y; this.directionX = directionX; this.directionY = directionY; this.size = size;
+            }
+            draw() {
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = 'rgba(0, 198, 255, 0.4)'; ctx.fill();
+            }
+            update() {
+                if (this.x > canvas.width || this.x < 0) { this.directionX = -this.directionX; }
+                if (this.y > canvas.height || this.y < 0) { this.directionY = -this.directionY; }
+                this.x += this.directionX; this.y += this.directionY;
+            }
+        }
+
+        class TrailParticle {
+            constructor(x, y, size, color) {
+                this.x = x; this.y = y; this.size = size; this.color = color;
+                this.life = 1;
+                this.vx = -1 + (Math.random() * 2) + (mouse.x - lastMouse.x) * 0.15;
+                this.vy = -1 + (Math.random() * 2) + (mouse.y - lastMouse.y) * 0.15;
+            }
+            draw() {
+                ctx.fillStyle = `hsla(${this.color}, 100%, 70%, ${this.life})`;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                this.life -= 0.025;
+                if(this.size > 0.1) this.size -= 0.08;
+            }
+        }
+
+        class RippleParticle {
+            constructor(x, y) {
+                this.x = x; this.y = y;
+                this.radius = 0;
+                this.opacity = 1;
+                this.color = `hsl(${hue}, 100%, 70%)`;
+            }
+            draw() {
+                ctx.strokeStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            }
+            update() {
+                this.radius += 1.5;
+                this.opacity -= 0.02;
+            }
+        }
+
+        // --- Initialization ---
+        function initAmbient() {
+            ambientParticles = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 10000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 1.5) + 1;
+                let x = (Math.random() * ((canvas.width - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((canvas.height - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 0.4) - 0.2;
+                let directionY = (Math.random() * 0.4) - 0.2;
+                ambientParticles.push(new AmbientParticle(x, y, directionX, directionY, size));
+            }
+        }
+
+        // --- Main Animation Loop ---
+        function animate() {
+            // Update liquid cursor
+            cursorDot.style.transform = `translate(${mouse.x - 5}px, ${mouse.y - 5}px)`;
+            follower.vx += (mouse.x - follower.x) * 0.15;
+            follower.vy += (mouse.y - follower.y) * 0.15;
+            follower.vx *= 0.85;
+            follower.vy *= 0.85;
+            follower.x += follower.vx;
+            follower.y += follower.vy;
+            cursorFollower.style.transform = `translate(${follower.x - 20}px, ${follower.y - 20}px)`;
+
+            // Calculate mouse speed and create supernova trail
+            let speed = Math.sqrt(Math.pow(mouse.x - lastMouse.x, 2) + Math.pow(mouse.y - lastMouse.y, 2));
+            if (speed > 1) {
+                let particleSize = 1 + speed / 4;
+                trailParticles.push(new TrailParticle(mouse.x, mouse.y, particleSize, hue));
+            }
+            lastMouse.x = mouse.x; lastMouse.y = mouse.y;
+            hue = (hue + 1) % 360;
+
+            // Fading background effect
+            ctx.fillStyle = 'rgba(10, 20, 50, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Handle all particle types
+            [ambientParticles, trailParticles, rippleParticles].forEach((particleArray, index) => {
+                for (let i = particleArray.length - 1; i >= 0; i--) {
+                    particleArray[i].update();
+                    particleArray[i].draw(); // <-- THE FIX: Explicitly draw every particle.
+                    
+                    if(index === 1 && particleArray[i].life <= 0) particleArray.splice(i, 1);
+                    if(index === 2 && particleArray[i].opacity <= 0) particleArray.splice(i, 1);
+                }
+            });
+            
+            connectAmbient();
+            requestAnimationFrame(animate);
+        }
+        
+        function connectAmbient() {
+            let opacityValue = 1;
+            for (let a = 0; a < ambientParticles.length; a++) {
+                for (let b = a; b < ambientParticles.length; b++) {
+                    let distance = ((ambientParticles[a].x - ambientParticles[b].x) * (ambientParticles[a].x - ambientParticles[b].x))
+                                 + ((ambientParticles[a].y - ambientParticles[b].y) * (ambientParticles[a].y - ambientParticles[b].y));
+                    if (distance < (canvas.width / 8) * (canvas.height / 8)) {
+                        opacityValue = 1 - (distance / 20000);
+                        ctx.strokeStyle = 'rgba(0, 198, 255,' + opacityValue * 0.3 + ')';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath(); ctx.moveTo(ambientParticles[a].x, ambientParticles[a].y); ctx.lineTo(ambientParticles[b].x, ambientParticles[b].y); ctx.stroke();
+                    }
+                }
+            }
+        }
+        
+        initAmbient();
+        animate();
+    </script>
+</body>
+</html>

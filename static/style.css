@@ -1,0 +1,202 @@
+/* --- :root and General Setup --- */
+/* We define our color palette here using CSS Variables for easy changes. */
+:root {
+    --bg-gradient-start: #1a2a6c;
+    --bg-gradient-mid: #b21f1f;
+    --bg-gradient-end: #fdbb2d;
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --text-color: #f0f0f0;
+    --primary-accent: #00c6ff;
+    --button-bg: linear-gradient(90deg, #00c6ff, #0072ff);
+    --error-color: #ff4757;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    color: var(--text-color);
+    background-color: var(--bg-gradient-start);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    /* The magic starts here: An infinitely animating gradient background */
+    background: linear-gradient(-45deg, var(--bg-gradient-start), var(--bg-gradient-mid), var(--bg-gradient-end));
+    background-size: 400% 400%;
+    animation: gradient-flow 15s ease infinite;
+}
+
+/* --- The Animated Gradient Background --- */
+/* @keyframes defines the animation steps. */
+@keyframes gradient-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* --- The Glassmorphism Card --- */
+/* This is the main container that looks like frosted glass. */
+.card {
+    width: 90%;
+    max-width: 500px;
+    padding: 2rem;
+    background: var(--glass-bg);
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    backdrop-filter: blur(10px); /* This creates the frosted glass effect */
+    -webkit-backdrop-filter: blur(10px); /* For Safari support */
+    text-align: center;
+}
+
+.card-header h1 {
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+.card-header p {
+    margin-top: 0;
+    opacity: 0.8;
+}
+
+/* --- Form and Input Styling --- */
+.url-form {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    background-color: var(--glass-bg);
+    color: var(--text-color);
+    font-size: 1rem;
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+    caret-color: transparent; /* This makes the blinking 'I' cursor invisible */
+
+}
+
+.form-group input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary-accent);
+    box-shadow: 0 0 0 3px rgba(0, 198, 255, 0.3);
+}
+
+/* --- Button Styling and Hover Effect --- */
+button {
+    padding: 1rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--button-bg);
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+button:hover {
+    transform: scale(1.05); /* Makes the button "pop" on hover */
+    box-shadow: 0 4px 20px rgba(0, 114, 255, 0.4);
+}
+
+/* --- Result and Error Box Styling --- */
+.result-box, .flash-error {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border-radius: 8px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* --- Updated Result Box Styling --- */
+.result-box {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border-radius: 8px;
+    /* Make the background darker and less transparent to stand out */
+    background: rgba(10, 20, 50, 0.5); 
+    border: 1px solid var(--glass-border);
+    /* Add a subtle glow */
+    box-shadow: 0 0 15px rgba(0, 198, 255, 0.2); 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.result-box a {
+    /* Change link color to bright white for maximum contrast */
+    color: #ffffff; 
+    text-decoration: none;
+    font-weight: 500;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* Add a subtle text glow */
+}
+
+.flash-error {
+    border-color: var(--error-color);
+    color: var(--error-color);
+}
+.flash-error p { margin: 0; }
+
+/* --- Canvas Background Styling --- */
+#interactive-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* This keeps the canvas behind everything else */
+}
+
+
+body {
+    /* Hide the default operating system cursor */
+    cursor: none; 
+}
+
+.cursor-dot {
+    width: 10px;
+    height: 10px;
+    background-color: var(--primary-accent);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    transition: transform 0.2s ease-out; /* Add transition for hover effect */
+}
+
+.cursor-follower {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 198, 255, 0.3);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%);
+    z-index: 9998; /* Sits just behind the main dot */
+    transition: all 0.15s ease-out; /* This creates the smooth lagging effect */
+}
+
+/* When hovering over an input, the cursor dot shrinks, providing feedback */
+.url-form input:hover ~ .cursor-dot {
+    transform: translate(-50%, -50%) scale(0.5);
+}
