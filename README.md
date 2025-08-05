@@ -9,10 +9,10 @@ A fully functional URL shortener built with Python and Flask, featuring a mesmer
 The application features a dynamic, multi-layered UI with an animated gradient, a "living constellation" particle system, and a "liquid" cursor that leaves a speed-sensitive trail.
 
 **The Main Interface:**
-![Main application interface with animated background and custom cursor](assets/screenshot-result.png)
+![Main application interface with animated background and custom cursor](assests/screenshot-result.png)
 
 **Result After Shortening:**
-![Result box showing the newly created short link for Google](assets/screenshot-main.png)
+![Result box showing the newly created short link for Google](assests/screenshot-main.png)
 
 ---
 
